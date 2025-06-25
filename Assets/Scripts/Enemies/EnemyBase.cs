@@ -3,20 +3,20 @@ using UnityEngine;
 
 namespace Enemies
 {
-    [RequireComponent(typeof(HealthComponent))]
+    [RequireComponent(typeof(Health))]
     public abstract class EnemyBase : MonoBehaviour {
         [Header("AI Settings")]
         [SerializeField] protected float moveSpeed = 3f;
         [SerializeField] protected float detectionRange = 10f;
         [SerializeField] protected float attackRange = 2f;
 
-        protected HealthComponent health;
+        protected Health health;
         protected Transform player;
         protected CharacterController controller;
         protected bool isAttacking;
 
         protected virtual void Awake() {
-            health = GetComponent<HealthComponent>();
+            health = GetComponent<Health>();
             player = GameObject.FindWithTag("Player").transform;
             controller = GetComponent<CharacterController>();
             health.OnDeath += Die;

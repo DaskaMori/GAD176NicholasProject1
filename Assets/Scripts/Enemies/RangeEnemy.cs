@@ -1,29 +1,55 @@
 using System.Collections;
+using Guns;
 using UnityEngine;
 
 namespace Enemies
 {
-    [RequireComponent(typeof(HealthComponent), typeof(CharacterController))]
     public class RangedEnemy : EnemyBase
     {
-        [Header("Ranged Settings")]
-        [SerializeField] private GameObject bulletPrefab;
-        [SerializeField] private float bulletSpeed = 15f;
-        [SerializeField] private float bulletDamage = 20f;
+        [Header("Gun")]
+        [SerializeField] private BaseWeapon weapon;
+
+        [Header("Tactics")]
+        [Tooltip("Desired distance to keep from player when firing")]
+        [SerializeField] private float desiredRange    = 5f;
+        [Tooltip("Cooldown between shots, in seconds")]
+        [SerializeField] private float attackCooldown  = 2f;
+
+        protected override void Update()
+        {
+            if (!health.IsAlive) return;
+
+            float dist = Vector3.Distance(transform.position, player.position);
+
+            Vector3 lookDir = (player.position - transform.position).normalized;
+            transform.rotation = Quaternion.LookRotation(lookDir);
+
+            if (dist > desiredRange)
+            {
+                MoveTowards(player.position, moveSpeed);
+            }
+            else
+            {
+                if (!isAttacking)
+                    StartCoroutine(AttackRoutine());
+            }
+        }
+
 
         protected override IEnumerator AttackRoutine()
         {
             isAttacking = true;
 
-            Vector3 dir = (player.position - transform.position).normalized;
-            Vector3 spawnPos = transform.position + dir;
-            GameObject bullet = Instantiate(bulletPrefab, spawnPos, Quaternion.LookRotation(dir));
+            weapon.Fire();
 
-            Rigidbody rb = bullet.GetComponent<Rigidbody>();
-            rb.velocity = dir * bulletSpeed;
-
-            yield return new WaitForSeconds(2f);
+            yield return new WaitForSeconds(attackCooldown);
             isAttacking = false;
+        }
+
+        private void MoveTowards(Vector3 target, float speed)
+        {
+            Vector3 dir = (target - transform.position).normalized;
+            controller.Move(dir * (speed * Time.deltaTime));
         }
     }
 }
